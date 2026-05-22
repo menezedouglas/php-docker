@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    container_name: ${ENV_NAME}_mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - "${MYSQL_DATA_PATH}:/var/lib/mysql"
+
+  phpmyadmin:
+    image: phpmyadmin:${PMA_VERSION}
+    container_name: ${ENV_NAME}_phpmyadmin
+    environment:
+      PMA_HOST: ${PMA_HOST}
+      PMA_PORT: ${PMA_PORT}
+      PMA_ARBITRARY: 1
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${PMA_HOST_PORT:-8081}:80"
+    depends_on:
+      - mysql
+
+  apache:
+    build:
+      context: ./docker/php-apache
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+    image: ${APACHE_IMAGE}
+    container_name: ${ENV_NAME}_apache
+    ports:
+      - "${APACHE_HOST_PORT:-8080}:80"
+    volumes:
+      - "${PROJECTS_ROOT}:/var/www"
+      - "${APACHE_CONFIG_PATH}:/etc/apache2/sites-enabled"
+    depends_on:
+      - mysql
+
+  php-worker:
+    build:
+      context: ./docker/php-worker
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+    image: ${WORKER_IMAGE}
+    container_name: ${ENV_NAME}_php_worker
+    volumes:
+      - "${PROJECTS_ROOT}:/var/www"
+      - "${WORKER_CONFIG_PATH}:/etc/supervisor/conf.d"
+    depends_on:
+      - mysql
+
+  node:
+    build:
+      context: ./docker/node
+      args:
+        NODE_VERSION: ${NODE_VERSION}
+    image: ${NODE_IMAGE}
+    container_name: ${ENV_NAME}_node
+    volumes:
+      - "${PROJECTS_ROOT}:/var/www"
+
+  workspace:
+    build:
+      context: ./docker/workspace
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+        NODE_VERSION: ${NODE_VERSION}
+    image: ${WORKSPACE_IMAGE}
+    container_name: ${ENV_NAME}_workspace
+    stdin_open: true
+    tty: true
+    volumes:
+      - "${PROJECTS_ROOT}:/var/www"
