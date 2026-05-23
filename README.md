@@ -18,6 +18,10 @@ PHP (>=7.4) + Apache2 (vhosts por arquivo), MySQL (>=8.0), phpMyAdmin, Node.js (
    ```bash
    ./scripts/dev-up.sh .env
    ```
+   Para forcar build das imagens:
+   ```bash
+   ./scripts/dev-up.sh --build .env
+   ```
    Ao subir, o acesso no navegador ja fica ativo:
    - Apache: `http://localhost:8080`
    - phpMyAdmin: `http://localhost:8081`

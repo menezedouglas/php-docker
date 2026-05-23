@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-  && docker-php-ext-install pdo_mysql mbstring zip gd \
+  && docker-php-ext-install pdo_mysql mbstring zip gd soap \
   && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
   && composer global require laravel/installer \
   && apt-get clean \

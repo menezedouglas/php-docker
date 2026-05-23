@@ -4,6 +4,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="${1:-$REPO_ROOT/.env}"
+DO_BUILD=false
+
+if [[ "${1:-}" == "--build" ]]; then
+  DO_BUILD=true
+  ENV_FILE="${2:-$REPO_ROOT/.env}"
+fi
 COMPOSE_FILE="$REPO_ROOT/docker-compose.yml"
 
 load_env() {
@@ -51,7 +57,11 @@ MYSQL_DATA_PATH="$(abs_path "$(resolve_path "$MYSQL_DATA_PATH")")"
 
 export PROJECTS_ROOT APACHE_CONFIG_PATH WORKER_CONFIG_PATH MYSQL_DATA_PATH
 
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" -p "$ENV_NAME" up -d --build
+if [[ "$DO_BUILD" == "true" ]]; then
+  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" -p "$ENV_NAME" up -d --build
+else
+  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" -p "$ENV_NAME" up -d
+fi
 
 APACHE_PORT="${APACHE_HOST_PORT:-8080}"
 PMA_PORT="${PMA_HOST_PORT:-8081}"

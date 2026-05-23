@@ -1,0 +1,3 @@
+*.conf
+!app1.conf
+!app2.conf
